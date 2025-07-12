@@ -1,0 +1,45 @@
+{
+  "name": "rinha-backend-2025",
+  "version": "0.1.0",
+  "description": "Backend for rinha backend 2025 challanger",
+  "scripts": {
+    "dev": "ts-node-dev --respawn src/main.ts",
+    "build": "tsc",
+    "start": "node dist/main.js",
+    "start:cluster": "npm run build && node cluster.js",
+    "worker": "ts-node-dev src/queue/worker.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lucas-moraes/rinha-backend-2025.git"
+  },
+  "keywords": [
+    "rinha",
+    "backend"
+  ],
+  "author": "Lucas Moraes",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lucas-moraes/rinha-backend-2025/issues"
+  },
+  "homepage": "https://github.com/lucas-moraes/rinha-backend-2025#readme",
+  "dependencies": {
+    "@fastify/cors": "^11.0.1",
+    "@prisma/client": "^6.11.1",
+    "axios": "^1.10.0",
+    "bullmq": "^5.56.3",
+    "dotenv": "^17.2.0",
+    "fastify": "^5.4.0",
+    "ioredis": "^5.6.1",
+    "pg": "^8.16.3",
+    "pino": "^9.7.0",
+    "prisma": "^6.11.1",
+    "reflect-metadata": "^0.2.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.12",
+    "@types/pg": "^8.15.4",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.8.3"
+  }
+}
