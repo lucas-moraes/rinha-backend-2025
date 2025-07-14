@@ -1,5 +1,5 @@
 import { buildApp } from "./app";
-import { CONFIG } from "./config";
+import { CONFIG } from "./infra/configs";
 
 async function start() {
   const app = buildApp();

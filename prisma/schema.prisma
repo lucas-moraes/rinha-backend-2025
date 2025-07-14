@@ -10,10 +10,10 @@ generator client {
 
 model Payment {
   id            String   @id @default(uuid())
-  correlationId String
+  correlationId String   @unique
   amount        Float
-  requestedAt   DateTime @default(now())
-  processedAt   DateTime @default(now())
-  provider      String
+  requestedAt   DateTime? 
+  processedAt   DateTime?
+  provider      String?
 }
 
