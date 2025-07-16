@@ -1,36 +1,20 @@
 export type Processor<T> = (data: T) => Promise<void> | void;
 
-export class Queue<T> {
-  private jobs: Array<{ data: T; resolve: () => void; reject: (e: any) => void }> = [];
-  private running = 0;
+type TQueue = { correlationId: string; amount: number; requestedAt: string };
 
-  constructor(
-    private readonly processor: Processor<T>,
-    private readonly concurrency: number = 1,
-  ) {}
+export class Queue {
+  private jobs: Array<TQueue> = [];
 
-  async add(data: T): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.jobs.push({ data, resolve, reject });
-      this.dequeue();
-    });
+  add(data: TQueue) {
+    this.jobs.push(data);
   }
 
-  private dequeue(): void {
-    while (this.running < this.concurrency && this.jobs.length > 0) {
-      const job = this.jobs.shift()!;
-      this.running++;
-      Promise.resolve(this.processor(job.data))
-        .then(() => {
-          job.resolve();
-        })
-        .catch((e) => {
-          job.reject(e);
-        })
-        .finally(() => {
-          this.running--;
-          this.dequeue();
-        });
+  dequeue(): TQueue | undefined {
+    if (this.jobs.length === 0) {
+      return undefined;
     }
+    return this.jobs.shift();
   }
 }
+
+export const queue = new Queue();

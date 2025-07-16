@@ -22,23 +22,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus:   '0.50'
-          memory: '512M'
-
-  redis:
-    image: redis:7-alpine
-    volumes:
-      - redis-data:/data
-    ports:
-      - '6379:6379'
-    networks:
-        - default
-    deploy:
-      resources:
-        limits:
-          cpus:   '0.25'
-          memory: '256M'
-
+          cpus:   '0.65'
+          memory: '150M'
 
   api:
     build:
@@ -51,49 +36,22 @@ services:
     environment:
       PORT:               9999
       HOST:               0.0.0.0
-      DATABASE_URL:       postgresql://user:pass@localhost:5432/rinha
+      DATABASE_URL:       postgresql://user:pass@postgres:5432/rinha
       REDIS_URL:          redis://localhost:6379
       PROCESSOR_DEFAULT:  http://host.docker.internal:8001
       PROCESSOR_FALLBACK: http://host.docker.internal:8002
     depends_on:
       - postgres
-      - redis
     expose:
       - "9999"
     networks:
       - default
     deploy:
-      replicas: 2
+      replicas: 3
       resources:
         limits:
-          cpus:   '0.50'
-          memory: '256M'
-
-  worker:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: rinha-backend-worker:latest
-    entrypoint:
-      - node
-      - --max-old-space-size=512
-      - dist/queue/worker.js
-    environment:
-      DATABASE_URL:       postgresql://user:pass@postgres:5432/rinha
-      REDIS_URL:          redis://redis:6379
-      PROCESSOR_DEFAULT:  http://host.docker.internal:8001
-      PROCESSOR_FALLBACK: http://host.docker.internal:8002
-    depends_on:
-      - api
-      - redis
-      - postgres
-    networks:
-      - default
-    deploy:
-      resources:
-        limits:
-          cpus:   '0.50'
-          memory: '256M'
+          cpus:   '0.25'
+          memory: '64M'
 
   lb:
     image: nginx:alpine
@@ -106,8 +64,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus:   '0.25'
-          memory: '128M'
+          cpus:   '0.05'
+          memory: '7M'
 
 volumes:
   postgres-data:

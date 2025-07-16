@@ -3,7 +3,7 @@ dotenv.config();
 
 export const CONFIG = {
   PORT: +(process.env.PORT ?? 9999),
-  HOST: process.env.HOST!,
+  HOST: process.env.HOST ?? "0.0.0.0",
   PROCESSOR_DEFAULT: process.env.PROCESSOR_DEFAULT!,
   PROCESSOR_FALLBACK: process.env.PROCESSOR_FALLBACK!,
 };

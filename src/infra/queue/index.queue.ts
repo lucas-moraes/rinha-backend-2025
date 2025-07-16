@@ -1,17 +1,21 @@
 import { updatePayment } from "../../application/use-cases/payment/update.usecase";
-import { recordPayment } from "../../application/use-cases/payment/record.usecase";
-import { Queue } from "./native.queue";
+import { queue } from "./native.queue";
 import { processPayment } from "../../application/use-cases/payment/processor.usecase";
+import { PrismaClient } from ".prisma/client";
+import { recordPayment } from "../../application/use-cases/payment/record.usecase";
 
-type TQueue = Record<string, string | number | boolean>;
+type TQueue = { correlationId: string; amount: number; requestedAt: string };
 
-export const paymentQueue = new Queue<TQueue>(async (data: TQueue) => {
-  const { correlationId, amount, requestedAt } = data as { correlationId: string; amount: number; requestedAt: string };
-  await recordPayment({ correlationId, amount, requestedAt });
-  const resp = await processPayment({
-    correlationId,
-    amount,
-    requestedAt,
-  });
-  await updatePayment(resp);
-});
+export const paymentQueue = async (prisma: PrismaClient, data: TQueue) => {
+  queue.add(data);
+  await recordPayment(prisma, data);
+  const job = queue.dequeue();
+  if (job) {
+    try {
+      const resultProcess = await processPayment(job);
+      await updatePayment(prisma, resultProcess!);
+    } catch (error) {
+      console.error("Error processing payment:", error);
+    }
+  }
+};

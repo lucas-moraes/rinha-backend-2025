@@ -1,28 +1,35 @@
+import { memoryStore } from "../../../infra/tools/store.tools";
+
 export const processPayment = async (data: { correlationId: string; amount: number; requestedAt: string }) => {
   let provider: "default" | "fallback";
   const { correlationId, amount, requestedAt } = data;
-  const defaultProcessorUrl = `${process.env.PROCESSOR_DEFAULT}/payments`;
-  const fallbackProcessorUrl = `${process.env.PROCESSOR_FALLBACK}/payments`;
+  const defaultProcessorUrl = `${process.env.PROCESSOR_DEFAULT}`;
+  const fallbackProcessorUrl = `${process.env.PROCESSOR_FALLBACK}`;
 
-  try {
+  const store = memoryStore.get();
+
+  const sendToDefaultProcessor = async (timeout: number) => {
     provider = "default";
-    const defaultResponse = await fetch(defaultProcessorUrl, {
+    const defaultResponse = await fetch(defaultProcessorUrl + "/payments", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ correlationId, amount, requestedAt }),
+      signal: AbortSignal.timeout(timeout),
     });
 
     if (!defaultResponse.ok) {
-      throw new Error(`Default processor failed with status ${defaultResponse.status}`);
+      sendToFallbackProcessor();
     }
 
     const processedAt = new Date().toISOString();
     return { correlationId, processedAt, provider };
-  } catch (error) {
+  };
+
+  const sendToFallbackProcessor = async () => {
     provider = "fallback";
-    const fallbackResponse = await fetch(fallbackProcessorUrl, {
+    await fetch(fallbackProcessorUrl + "/payments", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -30,10 +37,26 @@ export const processPayment = async (data: { correlationId: string; amount: numb
       body: JSON.stringify({ correlationId, amount, requestedAt }),
     });
 
-    if (!fallbackResponse.ok) {
-      throw new Error(`Fallback processor failed with status ${fallbackResponse.status}`);
-    }
     const processedAt = new Date().toISOString();
     return { correlationId, processedAt, provider };
+  };
+
+  if (store) {
+    const timeout =
+      Math.min(store.defaultProcessorStatus?.minResponseTime, store.fallbackProcessorStatus?.minResponseTime) || 100;
+    if (store?.defaultProcessorStatus?.failing) {
+      return sendToFallbackProcessor();
+    }
+    if (store?.fallbackProcessorStatus?.failing) {
+      return sendToDefaultProcessor(timeout);
+    }
+
+    if (store?.defaultProcessorStatus?.minResponseTime < store?.fallbackProcessorStatus?.minResponseTime) {
+      return sendToDefaultProcessor(timeout);
+    } else if (store?.defaultProcessorStatus?.minResponseTime > store?.fallbackProcessorStatus?.minResponseTime) {
+      return sendToFallbackProcessor();
+    }
+  } else {
+    sendToDefaultProcessor(100);
   }
 };
