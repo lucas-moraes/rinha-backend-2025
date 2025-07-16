@@ -8,12 +8,12 @@ type TQueue = { correlationId: string; amount: number; requestedAt: string };
 
 export const paymentQueue = async (prisma: PrismaClient, data: TQueue) => {
   queue.add(data);
-  await recordPayment(prisma, data);
+  await recordPayment(prisma, data.correlationId, data.amount, data.requestedAt);
   const job = queue.dequeue();
   if (job) {
     try {
-      const resultProcess = await processPayment(job);
-      await updatePayment(prisma, resultProcess!);
+      const { correlationId, processedAt, provider } = await processPayment(job);
+      await updatePayment(prisma, correlationId, processedAt, provider);
     } catch (error) {
       console.error("Error processing payment:", error);
     }

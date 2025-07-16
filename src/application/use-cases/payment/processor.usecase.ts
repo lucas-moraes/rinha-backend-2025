@@ -1,6 +1,10 @@
 import { memoryStore } from "../../../infra/tools/store.tools";
 
-export const processPayment = async (data: { correlationId: string; amount: number; requestedAt: string }) => {
+export const processPayment = async (data: {
+  correlationId: string;
+  amount: number;
+  requestedAt: string;
+}): Promise<{ correlationId: string; processedAt: string; provider: string }> => {
   let provider: "default" | "fallback";
   const { correlationId, amount, requestedAt } = data;
   const defaultProcessorUrl = `${process.env.PROCESSOR_DEFAULT}`;
@@ -10,21 +14,26 @@ export const processPayment = async (data: { correlationId: string; amount: numb
 
   const sendToDefaultProcessor = async (timeout: number) => {
     provider = "default";
-    const defaultResponse = await fetch(defaultProcessorUrl + "/payments", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ correlationId, amount, requestedAt }),
-      signal: AbortSignal.timeout(timeout),
-    });
+    try {
+      const defaultResponse = await fetch(defaultProcessorUrl + "/payments", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ correlationId, amount, requestedAt }),
+        signal: AbortSignal.timeout(timeout),
+      });
 
-    if (!defaultResponse.ok) {
-      sendToFallbackProcessor();
+      if (!defaultResponse.ok) {
+        return await sendToFallbackProcessor();
+      }
+
+      const processedAt = new Date().toISOString();
+      return { correlationId, processedAt, provider };
+    } catch (error) {
+      console.error("Error sending to default processor:", error);
+      return await sendToFallbackProcessor();
     }
-
-    const processedAt = new Date().toISOString();
-    return { correlationId, processedAt, provider };
   };
 
   const sendToFallbackProcessor = async () => {
@@ -42,21 +51,22 @@ export const processPayment = async (data: { correlationId: string; amount: numb
   };
 
   if (store) {
-    const timeout =
-      Math.min(store.defaultProcessorStatus?.minResponseTime, store.fallbackProcessorStatus?.minResponseTime) || 100;
+    const timeout = Math.max(
+      100,
+      Math.min(store.defaultProcessorStatus.minResponseTime, store.fallbackProcessorStatus.minResponseTime),
+    );
     if (store?.defaultProcessorStatus?.failing) {
-      return sendToFallbackProcessor();
+      return await sendToFallbackProcessor();
     }
     if (store?.fallbackProcessorStatus?.failing) {
-      return sendToDefaultProcessor(timeout);
+      return await sendToDefaultProcessor(timeout);
     }
 
     if (store?.defaultProcessorStatus?.minResponseTime < store?.fallbackProcessorStatus?.minResponseTime) {
-      return sendToDefaultProcessor(timeout);
+      return await sendToDefaultProcessor(timeout);
     } else if (store?.defaultProcessorStatus?.minResponseTime > store?.fallbackProcessorStatus?.minResponseTime) {
-      return sendToFallbackProcessor();
+      return await sendToFallbackProcessor();
     }
-  } else {
-    sendToDefaultProcessor(100);
   }
+  return await sendToDefaultProcessor(100);
 };

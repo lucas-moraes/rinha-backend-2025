@@ -10,7 +10,7 @@ export async function paymentsController(app: FastifyInstance) {
       return reply.status(400).send({ error: "Missing correlationId or amount" });
     }
     const requestedAt = new Date().toISOString();
-    await paymentQueue(prisma, { correlationId, amount, requestedAt });
+    await paymentQueue(prisma, { correlationId: String(correlationId), amount, requestedAt });
     reply.status(200).send({ message: "Payment recorded and queued successfully" });
   });
 
