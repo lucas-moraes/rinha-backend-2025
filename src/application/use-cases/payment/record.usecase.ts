@@ -1,18 +1,17 @@
 import { PrismaClient } from "@prisma/client";
 
-export const recordPayment = async (
-  prisma: PrismaClient,
-  correlationId: string,
-  amount: number,
-  requestedAt: string,
-) => {
+interface IPaymentData {
+  correlationId: string;
+  amount: number;
+  requestedAt: string;
+  processedAt: string;
+  provider: string;
+}
+
+export const recordPayment = async (prisma: PrismaClient, buffer: Array<IPaymentData>) => {
   await prisma.payment
-    .create({
-      data: {
-        correlationId,
-        amount,
-        requestedAt,
-      },
+    .createMany({
+      data: buffer,
     })
     .catch((error: any) => {
       console.error("Error recording payment:", error);

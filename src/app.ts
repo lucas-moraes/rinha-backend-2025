@@ -3,9 +3,9 @@ import cors from "@fastify/cors";
 import { paymentsController } from "./presentation/controllers/payments.controller";
 
 export function buildApp() {
-  const app = Fastify({ logger: true });
+  const app = Fastify({ logger: false });
 
-  app.register(cors, { origin: true });
+  app.register(cors, { origin: "*", methods: ["GET", "POST", "PUT", "DELETE"] });
 
   app.addContentTypeParser("application/json", { parseAs: "buffer" }, function (req, body, done) {
     if (!body || body.length === 0) {

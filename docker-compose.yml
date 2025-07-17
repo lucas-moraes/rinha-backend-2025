@@ -3,8 +3,6 @@ version: '3.8'
 networks:
   default:
     driver: bridge
-  payment-processor:
-    external: true
 
 services:
   postgres:
@@ -22,7 +20,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus:   '0.65'
+          cpus:   '0.45'
           memory: '150M'
 
   api:
@@ -33,11 +31,12 @@ services:
     entrypoint:
       - node
       - dist/main.js
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       PORT:               9999
       HOST:               0.0.0.0
       DATABASE_URL:       postgresql://user:pass@postgres:5432/rinha
-      REDIS_URL:          redis://localhost:6379
       PROCESSOR_DEFAULT:  http://host.docker.internal:8001
       PROCESSOR_FALLBACK: http://host.docker.internal:8002
     depends_on:
@@ -50,8 +49,8 @@ services:
       replicas: 3
       resources:
         limits:
-          cpus:   '0.25'
-          memory: '64M'
+          cpus:   '0.3'
+          memory: '63M'
 
   lb:
     image: nginx:alpine
@@ -65,7 +64,7 @@ services:
       resources:
         limits:
           cpus:   '0.05'
-          memory: '7M'
+          memory: '10M'
 
 volumes:
   postgres-data:

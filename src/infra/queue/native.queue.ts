@@ -15,6 +15,10 @@ export class Queue {
     }
     return this.jobs.shift();
   }
+
+  ItemsInQueue(): number {
+    return this.jobs.length;
+  }
 }
 
 export const queue = new Queue();

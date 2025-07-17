@@ -18,8 +18,6 @@ async function start() {
 setInterval(async () => {
   const resp = await CheckProcessorHealth();
 
-  console.log(`=>`, resp);
-
   memoryStore.set(resp);
 }, 5000);
 
