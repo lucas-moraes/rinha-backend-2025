@@ -9,22 +9,30 @@ export async function CheckProcessorHealth() {
     headers: {
       "Content-Type": "application/json",
     },
-  }).then((response) => {
-    if (response.ok) {
-      return response.json();
-    }
-  });
+  })
+    .then((response) => {
+      if (response.ok) {
+        return response.json();
+      }
+    })
+    .catch(() => {
+      return { failing: true, minResponseTime: 0 };
+    });
 
   const _f: TProcessorStatus = await fetch(fallbackProcessorUrl + "/payments/service-health", {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
     },
-  }).then((response) => {
-    if (response.ok) {
-      return response.json();
-    }
-  });
+  })
+    .then((response) => {
+      if (response.ok) {
+        return response.json();
+      }
+    })
+    .catch(() => {
+      return { failing: true, minResponseTime: 0 };
+    });
 
   return {
     defaultProcessorStatus: {

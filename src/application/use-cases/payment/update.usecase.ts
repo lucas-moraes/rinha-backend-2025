@@ -3,13 +3,22 @@ import { PrismaClient } from "@prisma/client";
 export const updatePayment = async (
   prisma: PrismaClient,
   correlationId: string,
-  processedAt: string,
-  provider: string,
+  amount: number,
+  requestedAt: string,
+  processedAt: string | null,
+  provider: string | null,
 ) => {
   try {
-    await prisma.payment.update({
+    await prisma.payment.upsert({
       where: { correlationId },
-      data: { processedAt, provider },
+      update: { processedAt, provider },
+      create: {
+        correlationId,
+        amount,
+        requestedAt,
+        processedAt,
+        provider,
+      },
     });
   } catch (error) {
     console.error("Error updating payment:", error);

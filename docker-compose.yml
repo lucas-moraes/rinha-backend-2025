@@ -6,13 +6,14 @@ networks:
 
 services:
   postgres:
-    image: postgres:15-alpine
+    image: postgres:17-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: pass
       POSTGRES_DB: rinha
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
+    tmpfs:
+      - /var/lib/postgresql/data
     ports:
       - '5432:5432'
     networks:
@@ -20,13 +21,16 @@ services:
     deploy:
       resources:
         limits:
-          cpus:   '0.45'
-          memory: '150M'
+          cpus:   '0.30'
+          memory: '128M'
 
-  api:
+  api-build:
     build:
       context: .
       dockerfile: Dockerfile
+    image: rinha-backend-api:latest
+
+  api-base: &api-base
     image: rinha-backend-api:latest
     entrypoint:
       - node
@@ -46,11 +50,22 @@ services:
     networks:
       - default
     deploy:
-      replicas: 3
       resources:
         limits:
-          cpus:   '0.3'
-          memory: '63M'
+          cpus:   '0.55'
+          memory: '128M'
+
+  api-1:
+    <<: *api-base
+    container_name: api-1  
+
+  api-2:
+    <<: *api-base
+    container_name: api-2  
+
+  api-3:
+    <<: *api-base
+    container_name: api-3  
 
   lb:
     image: nginx:alpine
@@ -60,13 +75,13 @@ services:
       - "9999:80"
     networks:
       - default
+    depends_on:
+      - api-1
     deploy:
       resources:
         limits:
-          cpus:   '0.05'
-          memory: '10M'
+          cpus:   '0.9'
+          memory: '100M'
 
 volumes:
   postgres-data:
-  redis-data:
-

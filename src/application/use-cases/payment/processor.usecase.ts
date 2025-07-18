@@ -32,7 +32,6 @@ const sendToDefaultProcessor = async (timeout: number, data: IPaymentData): Prom
 
     return { correlationId: data.correlationId, processedAt: new Date().toISOString(), provider: "default" };
   } catch (error) {
-    queue.add(data);
     return false;
   }
 };
@@ -64,7 +63,7 @@ export const processPayment = async (data: IPaymentData): Promise<IPaymentRespon
 
   if (store) {
     const timeout = Math.max(
-      300,
+      1000,
       Math.min(store.defaultProcessorStatus.minResponseTime, store.fallbackProcessorStatus.minResponseTime),
     );
     if (store?.defaultProcessorStatus?.failing) {
@@ -89,7 +88,7 @@ export const processPayment = async (data: IPaymentData): Promise<IPaymentRespon
       return await sendToFallbackProcessor(data);
     }
   }
-  const resp = await sendToDefaultProcessor(5000, data);
+  const resp = await sendToDefaultProcessor(500, data);
   if (!resp) {
     return await sendToFallbackProcessor(data);
   }

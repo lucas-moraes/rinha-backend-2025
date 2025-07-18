@@ -6,6 +6,9 @@ import { prisma } from "../../domain/index.domain";
 export async function paymentsController(app: FastifyInstance) {
   app.post("/payments", async (req, reply) => {
     const { correlationId, amount } = req.body as { correlationId: string; amount: number };
+    if (!correlationId || !amount) {
+      return reply.status(400).send({ error: "Missing correlationId or amount" });
+    }
     const requestedAt = new Date().toISOString();
     paymentQueue({ correlationId, amount, requestedAt });
     reply.status(200);

@@ -1,40 +1,47 @@
 import { queue } from "./native.queue";
 import { processPayment } from "../../application/use-cases/payment/processor.usecase";
-import { recordPayment } from "../../application/use-cases/payment/record.usecase";
 import { prisma } from "../../domain/index.domain";
+import { updatePayment } from "../../application/use-cases/payment/update.usecase";
 
 type TQueue = { correlationId: string; amount: number; requestedAt: string };
-type TBuffer = { correlationId: string; amount: number; requestedAt: string; processedAt: string; provider: string };
+type TReponseProcessor = { correlationId: string; processedAt: string; provider: string };
 
-let buffer: Array<TBuffer> = [];
+let isProcessing = false;
 
 export const paymentQueue = async (data: TQueue) => {
   queue.add(data);
+  await updatePayment(prisma, data.correlationId, data.amount, data.requestedAt, null, null);
 
-  const job = queue.dequeue();
-  if (job) {
-    try {
-      const resp = (await processPayment(job)) as unknown as { processedAt: string; provider: string } | boolean;
-      if (!resp) {
-        return;
+  if (!isProcessing) {
+    void processAll();
+  }
+};
+
+const processAll = async () => {
+  isProcessing = true;
+  try {
+    let job: TQueue | undefined;
+    while ((job = queue.dequeue())) {
+      try {
+        const resp = (await processPayment(job)) as unknown as TReponseProcessor | boolean;
+
+        if (!resp) continue;
+
+        const respTrue = resp as TReponseProcessor;
+
+        await updatePayment(
+          prisma,
+          respTrue.correlationId,
+          job.amount,
+          job.requestedAt,
+          respTrue.processedAt,
+          respTrue.provider,
+        );
+      } catch (error) {
+        queue.add(job);
       }
-
-      const respTrue = resp as { processedAt: string; provider: string };
-
-      buffer.push({
-        correlationId: job.correlationId,
-        amount: job.amount,
-        requestedAt: job.requestedAt,
-        processedAt: respTrue.processedAt,
-        provider: respTrue.provider,
-      });
-
-      if (buffer.length === 500) {
-        await recordPayment(prisma, buffer);
-        buffer = [];
-      }
-    } catch (error) {
-      console.error("Error processing payment:", error);
     }
+  } finally {
+    isProcessing = false;
   }
 };

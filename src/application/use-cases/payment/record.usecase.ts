@@ -4,16 +4,20 @@ interface IPaymentData {
   correlationId: string;
   amount: number;
   requestedAt: string;
-  processedAt: string;
-  provider: string;
 }
 
-export const recordPayment = async (prisma: PrismaClient, buffer: Array<IPaymentData>) => {
-  await prisma.payment
-    .createMany({
-      data: buffer,
-    })
-    .catch((error: any) => {
-      console.error("Error recording payment:", error);
+export const recordPayment = async (prisma: PrismaClient, data: IPaymentData) => {
+  try {
+    await prisma.payment.create({
+      data: {
+        correlationId: data.correlationId,
+        amount: data.amount,
+        requestedAt: data.requestedAt,
+        processedAt: null,
+        provider: null,
+      },
     });
+  } catch (error) {
+    console.error("Error recording payment:", error);
+  }
 };
