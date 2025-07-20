@@ -7,7 +7,7 @@ import { CheckProcessorHealth } from "./presentation/extern-api/index.externapi"
 async function start() {
   const app = buildApp();
 
-  await prisma.$connect().then(() => {
+  await prisma.$connect().then(async () => {
     console.log("✅ Prisma connected successfully");
   });
 
@@ -17,6 +17,8 @@ async function start() {
 
 setInterval(async () => {
   const resp = await CheckProcessorHealth();
+
+  // console.log(`=> processor`, resp);
 
   memoryStore.set(resp);
 }, 5000);

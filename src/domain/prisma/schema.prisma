@@ -15,5 +15,8 @@ model Payment {
   requestedAt   DateTime? 
   processedAt   DateTime?
   provider      String?
+
+  @@index([processedAt])
+  @@index([provider])
 }
 

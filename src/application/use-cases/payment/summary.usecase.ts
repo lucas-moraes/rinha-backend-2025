@@ -1,40 +1,41 @@
 import { PrismaClient } from "@prisma/client";
 
 export const summaryPayment = async (prisma: PrismaClient, from: string, to: string) => {
-  const defaultSummary = { totalRequests: 0, totalAmount: 0 };
-  const fallbackSummary = { totalRequests: 0, totalAmount: 0 };
-
   try {
-    const row = await prisma.payment.findMany({
+    const groups = await prisma.payment.groupBy({
+      by: ["provider"],
+      _count: { id: true },
+      _sum: { amount: true },
       where: {
         processedAt: {
           gte: from ? new Date(from) : undefined,
           lte: to ? new Date(to) : undefined,
         },
       },
-      orderBy: {
-        processedAt: "desc",
-      },
     });
 
-    row.forEach((payment) => {
-      if (payment.provider === "default") {
-        defaultSummary.totalRequests += 1;
-        defaultSummary.totalAmount += payment.amount;
-      } else if (payment.provider === "fallback") {
-        fallbackSummary.totalRequests += 1;
-        fallbackSummary.totalAmount += payment.amount;
-      }
-    });
-
+    const defaultGroup = groups.find((g) => g.provider === "default");
+    const fallbackGroup = groups.find((g) => g.provider === "fallback");
     return {
-      default: defaultSummary,
-      fallback: fallbackSummary,
+      default: {
+        totalRequests: defaultGroup?._count.id ?? 0,
+        totalAmount: defaultGroup?._sum.amount ?? 0,
+      },
+      fallback: {
+        totalRequests: fallbackGroup?._count.id ?? 0,
+        totalAmount: fallbackGroup?._sum.amount ?? 0,
+      },
     };
   } catch (error) {
     return {
-      default: defaultSummary,
-      fallback: fallbackSummary,
+      default: {
+        totalRequests: 0,
+        totalAmount: 0,
+      },
+      fallback: {
+        totalRequests: 0,
+        totalAmount: 0,
+      },
     };
   }
 };

@@ -36,7 +36,7 @@ const sendToDefaultProcessor = async (timeout: number, data: IPaymentData): Prom
   }
 };
 
-const sendToFallbackProcessor = async (data: IPaymentData): Promise<IPaymentResponse | boolean> => {
+const sendToFallbackProcessor = async (timeout: number, data: IPaymentData): Promise<IPaymentResponse | boolean> => {
   const fallbackProcessorUrl = `${process.env.PROCESSOR_FALLBACK}`;
   try {
     const falbackResponse = await fetch(fallbackProcessorUrl + "/payments", {
@@ -45,6 +45,7 @@ const sendToFallbackProcessor = async (data: IPaymentData): Promise<IPaymentResp
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
+      signal: AbortSignal.timeout(timeout),
     });
 
     if (!falbackResponse.ok) {
@@ -62,35 +63,36 @@ export const processPayment = async (data: IPaymentData): Promise<IPaymentRespon
   const store = memoryStore.get();
 
   if (store) {
-    const timeout = Math.max(
-      1000,
-      Math.min(store.defaultProcessorStatus.minResponseTime, store.fallbackProcessorStatus.minResponseTime),
-    );
-    if (store?.defaultProcessorStatus?.failing) {
-      return await sendToFallbackProcessor(data);
-    }
-    if (store?.fallbackProcessorStatus?.failing) {
-      const resp = await sendToDefaultProcessor(timeout, data);
-      if (!resp) return await sendToFallbackProcessor(data);
-    }
+    const timeout =
+      Math.max(
+        5000,
+        Math.min(store.defaultProcessorStatus.minResponseTime, store.fallbackProcessorStatus.minResponseTime),
+      ) || 5000;
+
+    // console.log(`=> timeout`, timeout);
+    // console.log(`=> default`, store.defaultProcessorStatus.minResponseTime);
+    // console.log(`=> fallback`, store.fallbackProcessorStatus.minResponseTime);
 
     if (store?.defaultProcessorStatus?.failing && store?.fallbackProcessorStatus?.failing) {
       queue.add(data);
       return false;
     }
 
+    if (store?.defaultProcessorStatus?.failing) {
+      return await sendToFallbackProcessor(timeout, data);
+    }
+
+    if (store?.fallbackProcessorStatus?.failing) {
+      return await sendToDefaultProcessor(timeout, data);
+    }
+
     if (store?.defaultProcessorStatus?.minResponseTime < store?.fallbackProcessorStatus?.minResponseTime) {
-      const resp = await sendToDefaultProcessor(timeout, data);
-      if (!resp) {
-        return await sendToFallbackProcessor(data);
-      }
-    } else if (store?.defaultProcessorStatus?.minResponseTime > store?.fallbackProcessorStatus?.minResponseTime) {
-      return await sendToFallbackProcessor(data);
+      return await sendToDefaultProcessor(timeout, data);
+    }
+
+    if (store?.defaultProcessorStatus?.minResponseTime > store?.fallbackProcessorStatus?.minResponseTime) {
+      return await sendToFallbackProcessor(timeout, data);
     }
   }
-  const resp = await sendToDefaultProcessor(500, data);
-  if (!resp) {
-    return await sendToFallbackProcessor(data);
-  }
-  return resp as IPaymentResponse;
+  return await sendToDefaultProcessor(5000, data);
 };

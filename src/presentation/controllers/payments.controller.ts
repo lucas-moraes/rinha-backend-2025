@@ -16,6 +16,32 @@ export async function paymentsController(app: FastifyInstance) {
 
   app.get("/payments-summary", async (req, reply) => {
     const { from, to } = req.query as { from: string; to: string };
+    if (from && isNaN(Date.parse(from))) {
+      return reply.status(400).send({ error: "Invalid 'from' date format" });
+    }
+    if (to && isNaN(Date.parse(to))) {
+      return reply.status(400).send({ error: "Invalid 'to' date format" });
+    }
+
+    if (from && !isValidDate(from)) {
+      return reply.status(400).send({ error: "'from' date must be today" });
+    }
+
+    if (to && !isValidDate(to)) {
+      return reply.status(400).send({ error: "'to' date must be today" });
+    }
+
+    function isValidDate(date: string) {
+      const today = new Date();
+      const parsedDate = new Date(date);
+
+      return (
+        today.getUTCFullYear() === parsedDate.getUTCFullYear() &&
+        today.getUTCMonth() === parsedDate.getUTCMonth() &&
+        today.getUTCDate() === parsedDate.getUTCDate()
+      );
+    }
+
     const result = await summaryPayment(prisma, from, to);
     reply.status(200).send(result);
   });

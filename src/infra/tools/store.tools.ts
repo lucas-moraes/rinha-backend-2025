@@ -4,7 +4,7 @@ type TStore = {
 };
 
 class MemoryStore {
-  private store: TStore | undefined;
+  private store: TStore | undefined = undefined;
 
   public set(data: TStore) {
     this.store = data;

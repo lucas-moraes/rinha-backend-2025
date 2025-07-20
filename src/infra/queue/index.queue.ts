@@ -13,35 +13,34 @@ export const paymentQueue = async (data: TQueue) => {
   await updatePayment(prisma, data.correlationId, data.amount, data.requestedAt, null, null);
 
   if (!isProcessing) {
-    void processAll();
+    isProcessing = true;
+    await processAll();
+    isProcessing = false;
   }
 };
 
 const processAll = async () => {
-  isProcessing = true;
-  try {
-    let job: TQueue | undefined;
-    while ((job = queue.dequeue())) {
-      try {
-        const resp = (await processPayment(job)) as unknown as TReponseProcessor | boolean;
+  let job: TQueue | undefined;
+  while ((job = queue.dequeue())) {
+    // console.log(`=> queue total`, queue.ItemsInQueue());
+    try {
+      const resp = (await processPayment(job)) as unknown as TReponseProcessor | boolean;
 
-        if (!resp) continue;
+      if (!resp) continue;
 
-        const respTrue = resp as TReponseProcessor;
+      const respTrue = resp as TReponseProcessor;
 
-        await updatePayment(
-          prisma,
-          respTrue.correlationId,
-          job.amount,
-          job.requestedAt,
-          respTrue.processedAt,
-          respTrue.provider,
-        );
-      } catch (error) {
-        queue.add(job);
-      }
+      await updatePayment(
+        prisma,
+        respTrue.correlationId,
+        job.amount,
+        job.requestedAt,
+        respTrue.processedAt,
+        respTrue.provider,
+      );
+    } catch (error) {
+      queue.add(job);
+      continue;
     }
-  } finally {
-    isProcessing = false;
   }
 };
