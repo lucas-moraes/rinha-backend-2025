@@ -10,11 +10,11 @@ generator client {
 
 model Payment {
   id            String @default(cuid())
-  correlationId String @id
+  correlationId String @id 
   amount        Float
   requestedAt   DateTime? 
   processedAt   DateTime?
-  provider      String?
+  provder       String?
 
   @@index([correlationId])
 }

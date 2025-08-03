@@ -4,7 +4,7 @@ export const summaryPayment = async (prisma: PrismaClient, from: string, to: str
   try {
     const groups = await prisma.payment.groupBy({
       by: ["provider"],
-      _count: { id: true },
+      _count: { correlationId: true },
       _sum: { amount: true },
       where: {
         processedAt: {
@@ -18,11 +18,11 @@ export const summaryPayment = async (prisma: PrismaClient, from: string, to: str
     const fallbackGroup = groups.find((g) => g.provider === "fallback");
     return {
       default: {
-        totalRequests: defaultGroup?._count.id ?? 0,
+        totalRequests: defaultGroup?._count.correlationId ?? 0,
         totalAmount: defaultGroup?._sum.amount ?? 0,
       },
       fallback: {
-        totalRequests: fallbackGroup?._count.id ?? 0,
+        totalRequests: fallbackGroup?._count.correlationId ?? 0,
         totalAmount: fallbackGroup?._sum.amount ?? 0,
       },
     };

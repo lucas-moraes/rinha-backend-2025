@@ -136,3 +136,5 @@ vite.config.ts.timestamp-*
 /generated/prisma
 
 /generated/src/prisma
+
+test-k6

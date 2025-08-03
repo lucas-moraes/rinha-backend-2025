@@ -1,4 +1,4 @@
-type TStore = {
+export type TStore = {
   defaultProcessorStatus: { failing: boolean; minResponseTime: number };
   fallbackProcessorStatus: { failing: boolean; minResponseTime: number };
 };

@@ -6,8 +6,9 @@
     "dev": "nodemon",
     "build": "tsc",
     "start": "node dist/main.js",
-    "start:cluster": "npm run build && node cluster.js",
-    "worker": "ts-node-dev src/queue/worker.ts"
+    "worker:one": "ts-node-dev worker-1/index.ts",
+    "worker:two": "ts-node-dev worker-2/index.ts",
+    "queue": "ts-node-dev queue/index.ts"
   },
   "repository": {
     "type": "git",
