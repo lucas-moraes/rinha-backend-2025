@@ -27,20 +27,6 @@ async function QueueController(app: FastifyInstance) {
       divisor: worker ?? divisor,
     });
 
-    // switch (divisor) {
-    //   case 0:
-    //     divisor = 1;
-    //     break;
-    //
-    //   case 1:
-    //     divisor = 2;
-    //     break;
-    //
-    //   default:
-    //     divisor = 0;
-    //     break;
-    // }
-
     reply.status(201);
   });
 

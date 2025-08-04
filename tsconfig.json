@@ -5,6 +5,7 @@
     "strict": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "noImplicitAny": false,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist",
@@ -14,6 +15,12 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
   },
-  "include": ["src/**/*.ts", "__tests__/**/*.ts", "jest.config.ts", "jest.setup.ts"],
+  "include": [
+    "src/**/*.ts", 
+    "worker-1/**/*.ts", 
+    "worker-2/**/*.ts", 
+    "worker-3/**/*.ts",
+    "queue/**/*.ts"
+  ],
   "exclude": ["node_modules", "dist"]
 }

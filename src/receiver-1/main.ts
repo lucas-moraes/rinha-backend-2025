@@ -6,11 +6,11 @@ async function start() {
   const app = buildApp();
 
   await prisma.$connect().then(() => {
-    console.log("API: ✅ Prisma connected successfully");
+    console.log("Receiver 1: ✅ Prisma connected successfully");
   });
 
   await app.listen({ port: CONFIG.PORT, host: CONFIG.HOST });
-  console.log(`API: ✅ Ruuning at port ${CONFIG.HOST}:${CONFIG.PORT}`);
+  console.log(`Receiver 1: ✅ Ruuning at port ${CONFIG.HOST}:${CONFIG.PORT}`);
 }
 start().catch((err) => {
   console.error(err);

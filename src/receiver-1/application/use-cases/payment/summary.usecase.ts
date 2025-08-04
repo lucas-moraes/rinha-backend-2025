@@ -14,8 +14,8 @@ export const summaryPayment = async (prisma: PrismaClient, from: string, to: str
       },
     });
 
-    const defaultGroup = groups.find((g) => g.provider === "default");
-    const fallbackGroup = groups.find((g) => g.provider === "fallback");
+    const defaultGroup = groups.find((g: any) => g.provider === "default");
+    const fallbackGroup = groups.find((g: any) => g.provider === "fallback");
     return {
       default: {
         totalRequests: defaultGroup?._count.correlationId ?? 0,

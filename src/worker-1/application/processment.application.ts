@@ -12,11 +12,11 @@ export class ProcessmentApplication {
     this.prisma
       .$connect()
       .then(() => {
-        console.log("Worker-process: ✅ Prisma connected successfully");
+        console.log("Worker 1: ✅ Prisma connected successfully");
         this.timer();
       })
       .catch((error) => {
-        console.error("Worker-process: ❌ Prisma connection error", error);
+        console.error("Worker 1: ❌ Prisma connection error", error);
         process.exit(1);
       });
   }
@@ -51,12 +51,12 @@ export class ProcessmentApplication {
 
       const dTime: number | undefined =
         this.store?.defaultProcessorStatus?.minResponseTime === 0
-          ? 150
+          ? 300
           : this.store?.defaultProcessorStatus?.minResponseTime;
       const dFailing: boolean | undefined = this.store?.defaultProcessorStatus?.failing;
       const fTime: number | undefined =
         this.store?.fallbackProcessorStatus?.minResponseTime === 0
-          ? 150
+          ? 300
           : this.store?.fallbackProcessorStatus?.minResponseTime;
       const fFailing: boolean | undefined = this.store?.fallbackProcessorStatus?.failing;
 
@@ -95,8 +95,6 @@ export class ProcessmentApplication {
   private async defaultProcessor(timeout: number, data: PaymentDto): Promise<void> {
     const defaultProcessorUrl = `${CONFIG.PROCESSOR_DEFAULT}/payments`;
 
-    console.log(`=>🟢`, { from: "defaultProcessor", data });
-
     try {
       const defaultResponse = await fetch(defaultProcessorUrl, {
         method: "POST",
@@ -128,7 +126,6 @@ export class ProcessmentApplication {
         },
       });
     } catch (error) {
-      console.error("Error in defaultProcessor:", error);
       const time =
         (this.store?.fallbackProcessorStatus?.minResponseTime! > 0
           ? this.store?.fallbackProcessorStatus?.minResponseTime!
@@ -139,8 +136,6 @@ export class ProcessmentApplication {
 
   private async fallbackProcessor(timeout: number, data: PaymentDto): Promise<void> {
     const fallbackProcessorUrl = `${CONFIG.PROCESSOR_FALLBACK}/payments`;
-
-    console.log(`=>🟠`, { from: "fallbackProcessor", data });
 
     try {
       const falbackResponse = await fetch(fallbackProcessorUrl, {
@@ -173,7 +168,6 @@ export class ProcessmentApplication {
         },
       });
     } catch (error) {
-      console.error("Error in fallbackProcessor:", error);
       await fetch(`http://localhost:9696/queue/enqueue`, {
         method: "POST",
         headers: {
