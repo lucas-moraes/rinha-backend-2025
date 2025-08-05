@@ -82,12 +82,12 @@ export class ProcessmentApplication {
       }
 
       if (dTime === undefined || fTime === undefined) this.defaultProcessor(1000, data);
-      if (dTime! < fTime!) this.defaultProcessor(dTime! * 1.5, data);
-      if (dTime! > fTime!) this.fallbackProcessor(fTime! * 1.5, data);
+      if (dTime! < fTime!) this.defaultProcessor(dTime! * 1.2, data);
+      if (dTime! > fTime!) this.fallbackProcessor(fTime! * 1.2, data);
       if (dTime! === fTime!) {
-        if (dFailing) this.fallbackProcessor(fTime! * 1.5, data);
-        if (fFailing) this.defaultProcessor(dTime! * 1.5, data);
-        this.defaultProcessor(dTime! * 1.5, data);
+        if (dFailing) this.fallbackProcessor(fTime! * 1.2, data);
+        if (fFailing) this.defaultProcessor(dTime! * 1.2, data);
+        this.defaultProcessor(dTime! * 1.2, data);
       }
     }
   }

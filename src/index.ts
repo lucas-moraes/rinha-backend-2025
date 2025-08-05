@@ -1,3 +1,5 @@
-import "./receiver-1/main";
-import "./queue/index";
-import "./worker-1/index";
+import "./modules/receiver-1/main";
+import "./modules/queue/index";
+import "./modules/worker-1/index";
+import "./modules/worker-2/index";
+import "./modules/worker-3/index";

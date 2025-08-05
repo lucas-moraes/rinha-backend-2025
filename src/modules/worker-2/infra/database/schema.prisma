@@ -1,0 +1,21 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native","linux-musl-openssl-3.0.x"]
+}
+
+model Payment {
+  id            String @default(cuid())
+  correlationId String @id 
+  amount        Float
+  requestedAt   DateTime? 
+  processedAt   DateTime?
+  provder       String?
+
+  @@index([correlationId])
+}
+

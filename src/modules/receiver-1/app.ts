@@ -1,6 +1,7 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { paymentsController } from "./presentation/controllers/payments.controller";
+import "http2";
 
 export function buildApp() {
   const app = Fastify({ logger: false });
