@@ -1,0 +1,18 @@
+import { db } from "./connection";
+
+async function migrate() {
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS payments (
+        id SERIAL PRIMARY KEY,
+        correlation_id VARCHAR(255) NOT NULL,
+        amount NUMERIC(12,2) NOT NULL,
+        requested_at TIMESTAMPTZ NOT NULL,
+        processed_at TIMESTAMPTZ,
+        provider VARCHAR(100) NOT NULL
+    );
+  `);
+
+  console.log("Migration completed");
+}
+
+migrate().catch(console.error);

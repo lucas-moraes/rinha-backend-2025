@@ -1,41 +1,54 @@
-import { PrismaClient } from "@prisma/client";
+import { db } from "../../../../../database/connection";
 
-export const summaryPayment = async (prisma: PrismaClient, from: string, to: string) => {
+interface SummaryResult {
+  default: {
+    totalRequests: number;
+    totalAmount: number;
+  };
+  fallback: {
+    totalRequests: number;
+    totalAmount: number;
+  };
+}
+
+export const summaryPayment = async (from: string, to: string): Promise<SummaryResult> => {
   try {
-    const groups = await prisma.payment.groupBy({
-      by: ["provider"],
-      _count: { correlationId: true },
-      _sum: { amount: true },
-      where: {
-        processedAt: {
-          gte: from ? new Date(from) : undefined,
-          lte: to ? new Date(to) : undefined,
-        },
-      },
-    });
+    const result = await db.query(
+      `
+      SELECT provider, COUNT(correlation_id) as totalRequests, COALESCE(SUM(amount), 0) as totalAmount
+      FROM payments
+      WHERE processed_at BETWEEN $1 AND $2
+      GROUP BY provider
+      `,
+      [from, to],
+    );
 
-    const defaultGroup = groups.find((g: any) => g.provider === "default");
-    const fallbackGroup = groups.find((g: any) => g.provider === "fallback");
+    let defaultGroup = { totalRequests: 0, totalAmount: 0 };
+    let fallbackGroup = { totalRequests: 0, totalAmount: 0 };
+
+    for (const row of result.rows) {
+      if (row.provider === "default") {
+        defaultGroup = {
+          totalRequests: parseInt(row.totalrequests),
+          totalAmount: parseFloat(row.totalamount),
+        };
+      } else if (row.provider === "fallback") {
+        fallbackGroup = {
+          totalRequests: parseInt(row.totalrequests),
+          totalAmount: parseFloat(row.totalamount),
+        };
+      }
+    }
+
     return {
-      default: {
-        totalRequests: defaultGroup?._count.correlationId ?? 0,
-        totalAmount: defaultGroup?._sum.amount ?? 0,
-      },
-      fallback: {
-        totalRequests: fallbackGroup?._count.correlationId ?? 0,
-        totalAmount: fallbackGroup?._sum.amount ?? 0,
-      },
+      default: defaultGroup,
+      fallback: fallbackGroup,
     };
   } catch (error) {
+    console.error(error);
     return {
-      default: {
-        totalRequests: 0,
-        totalAmount: 0,
-      },
-      fallback: {
-        totalRequests: 0,
-        totalAmount: 0,
-      },
+      default: { totalRequests: 0, totalAmount: 0 },
+      fallback: { totalRequests: 0, totalAmount: 0 },
     };
   }
 };

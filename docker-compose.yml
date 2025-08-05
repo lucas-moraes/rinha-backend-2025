@@ -34,8 +34,12 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     environment:
-      HOST:               0.0.0.0
-      DATABASE_URL:       postgresql://user:pass@postgres:5432/rinha
+      HOST: 0.0.0.0
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: user
+      DB_PASS: pass
+      DB_NAME: rinha
       PROCESSOR_DEFAULT:  http://host.docker.internal:8001
       PROCESSOR_FALLBACK: http://host.docker.internal:8002
     expose:

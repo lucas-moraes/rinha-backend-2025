@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify/fastify";
 import { summaryPayment } from "../../application/use-cases/payment/summary.usecase";
-import { prisma } from "../../domain/index.domain";
+import { deleteMany } from "../../application/use-cases/payment/delete.usecase";
 
 export async function paymentsController(app: FastifyInstance) {
   app.post(
@@ -80,7 +80,7 @@ export async function paymentsController(app: FastifyInstance) {
     async (req, reply) => {
       const { from, to } = req.query as { from: string; to: string };
 
-      const result = await summaryPayment(prisma, from, to);
+      const result = await summaryPayment(from, to);
       reply.status(200).send(result);
     },
   );
@@ -100,7 +100,7 @@ export async function paymentsController(app: FastifyInstance) {
       },
     },
     async (req, reply) => {
-      await prisma.payment.deleteMany();
+      await deleteMany();
       reply.status(200).send({ message: "Payments purged successfully" });
     },
   );

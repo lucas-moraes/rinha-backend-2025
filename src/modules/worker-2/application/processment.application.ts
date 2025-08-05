@@ -1,24 +1,16 @@
 import { PaymentDto } from "../domain/payments.dto";
 import { memoryStore, TStore } from "../store/index.store";
 import { CONFIG } from "../infra/configs/index.config";
-import { PrismaClient } from "@prisma/client";
+import { db } from "../../../database/connection";
 
 export class ProcessmentApplication {
-  private prisma: PrismaClient = new PrismaClient();
+  private db: typeof db;
   private store: TStore | undefined;
   isProcessing: boolean = false;
 
   constructor() {
-    this.prisma
-      .$connect()
-      .then(() => {
-        console.log("Worker 2: ✅ Prisma connected successfully");
-        this.timer();
-      })
-      .catch((error) => {
-        console.error("Worker 2: ❌ Prisma connection error", error);
-        process.exit(1);
-      });
+    this.db = db;
+    this.timer();
   }
 
   private async timer(): Promise<void> {
@@ -109,36 +101,29 @@ export class ProcessmentApplication {
         signal: AbortSignal.timeout(timeout),
       });
 
-      if (!defaultResponse.ok) {
-        if (defaultResponse.status === 500) {
-          throw new Error("Fallback processor is overloaded");
-        }
-        return;
+      if (defaultResponse.ok) {
+        await this.db.query(
+          `INSERT INTO payments (correlation_id, amount, requested_at, processed_at, provider)
+            VALUES ($1, $2, $3, $4, $5)`,
+          [data.correlationId, data.amount, data.requestedAt, new Date().toISOString(), "default"],
+        );
       }
 
-      await this.prisma.payment.create({
-        data: {
-          correlationId: data.correlationId,
-          amount: data.amount,
-          requestedAt: data.requestedAt,
-          processedAt: new Date().toISOString(),
-          provider: "default",
-        },
-      });
+      if (!defaultResponse.ok && defaultResponse.status === 500) {
+        throw new Error("Fallback processor is overloaded");
+      }
     } catch (error) {
       const time =
         (this.store?.fallbackProcessorStatus?.minResponseTime! > 0
           ? this.store?.fallbackProcessorStatus?.minResponseTime!
-          : 1000) ?? 1000;
+          : 300) ?? 300;
       await this.fallbackProcessor(time, data);
     }
   }
 
   private async fallbackProcessor(timeout: number, data: PaymentDto): Promise<void> {
-    const fallbackProcessorUrl = `${CONFIG.PROCESSOR_FALLBACK}/payments`;
-
     try {
-      const falbackResponse = await fetch(fallbackProcessorUrl, {
+      const falbackResponse = await fetch(`${CONFIG.PROCESSOR_FALLBACK}/payments`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -151,22 +136,17 @@ export class ProcessmentApplication {
         signal: AbortSignal.timeout(timeout),
       });
 
-      if (!falbackResponse.ok) {
-        if (falbackResponse.status === 500) {
-          throw new Error("Fallback processor is overloaded");
-        }
-        return;
+      if (falbackResponse.ok) {
+        await this.db.query(
+          `INSERT INTO payments (correlation_id, amount, requested_at, processed_at, provider)
+            VALUES ($1, $2, $3, $4, $5)`,
+          [data.correlationId, data.amount, data.requestedAt, new Date().toISOString(), "fallback"],
+        );
       }
 
-      await this.prisma.payment.create({
-        data: {
-          correlationId: data.correlationId,
-          amount: data.amount,
-          requestedAt: data.requestedAt,
-          processedAt: new Date().toISOString(),
-          provider: "fallback",
-        },
-      });
+      if (!falbackResponse.ok && falbackResponse.status === 500) {
+        throw new Error("Fallback processor is overloaded");
+      }
     } catch (error) {
       await fetch(`http://localhost:9696/queue/enqueue`, {
         method: "POST",
@@ -177,7 +157,7 @@ export class ProcessmentApplication {
           correlationId: data.correlationId,
           amount: data.amount,
           requestedAt: data.requestedAt,
-          worker: 1,
+          worker: 2,
         }),
       });
     }

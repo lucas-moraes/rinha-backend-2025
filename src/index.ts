@@ -1,3 +1,4 @@
+import "./database/create-table";
 import "./modules/receiver-1/main";
 import "./modules/queue/index";
 import "./modules/worker-1/index";
