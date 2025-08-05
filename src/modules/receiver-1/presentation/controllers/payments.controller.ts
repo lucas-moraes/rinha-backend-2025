@@ -1,81 +1,38 @@
 import { FastifyInstance } from "fastify/fastify";
 import { summaryPayment } from "../../application/use-cases/payment/summary.usecase";
 import { deleteMany } from "../../application/use-cases/payment/delete.usecase";
+import { PAYMENTS_CONTROLLER_CONSTANTS } from "./constants";
 
 export async function paymentsController(app: FastifyInstance) {
   app.post(
-    "/payments",
+    PAYMENTS_CONTROLLER_CONSTANTS.ENDPOINTS.PAYMENTS,
     {
-      schema: {
-        body: {
-          type: "object",
-          properties: {
-            correlationId: { type: "string" },
-            amount: { type: "number" },
-          },
-          required: ["correlationId", "amount"],
-        },
-        response: {
-          200: {},
-          400: {
-            type: "object",
-            properties: {
-              error: { type: "string" },
-            },
-          },
-        },
-      },
+      schema: PAYMENTS_CONTROLLER_CONSTANTS.SCHEMAS.PAYMENTS,
     },
     async (req, reply) => {
       const { correlationId, amount } = req.body as { correlationId: string; amount: number };
 
-      if (!correlationId || !amount) {
-        return reply.status(400).send({ error: "Missing correlationId or amount" });
-      }
+      if (!correlationId || !amount) return reply.status(400);
+
       const requestedAt = new Date().toISOString();
-      await fetch("http://localhost:9696/queue/enqueue", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+      await fetch(PAYMENTS_CONTROLLER_CONSTANTS.REQUEST_ENQUEUE.URL, {
+        method: PAYMENTS_CONTROLLER_CONSTANTS.REQUEST_ENQUEUE.METHOD,
+        headers: PAYMENTS_CONTROLLER_CONSTANTS.REQUEST_ENQUEUE.HEADERS,
         body: JSON.stringify({
           correlationId,
           amount,
           requestedAt,
         }),
       });
+
       reply.status(200);
     },
   );
 
   app.get(
-    "/payments-summary",
+    PAYMENTS_CONTROLLER_CONSTANTS.ENDPOINTS.PAYMENTS_SUMMARY,
     {
-      schema: {
-        querystring: {
-          type: "object",
-          properties: {
-            from: { type: "string", format: "date-time" },
-            to: { type: "string", format: "date-time" },
-          },
-          required: ["from", "to"],
-        },
-        response: {
-          200: {
-            type: "object",
-            properties: {
-              default: {
-                totalRequests: "number",
-                totalAmount: "number",
-              },
-              fallback: {
-                totalRequests: "number",
-                totalAmount: "number",
-              },
-            },
-          },
-        },
-      },
+      schema: PAYMENTS_CONTROLLER_CONSTANTS.SCHEMAS.PAYMENTS_SUMMARY,
     },
     async (req, reply) => {
       const { from, to } = req.query as { from: string; to: string };
@@ -85,23 +42,14 @@ export async function paymentsController(app: FastifyInstance) {
     },
   );
 
-  app.post(
-    "/purge-payments",
+  app.delete(
+    PAYMENTS_CONTROLLER_CONSTANTS.ENDPOINTS.PURGE_PAYMENTS,
     {
-      schema: {
-        response: {
-          200: {
-            type: "object",
-            properties: {
-              message: { type: "string" },
-            },
-          },
-        },
-      },
+      schema: PAYMENTS_CONTROLLER_CONSTANTS.SCHEMAS.PURGE_PAYMENTS,
     },
-    async (req, reply) => {
+    async (_, reply) => {
       await deleteMany();
-      reply.status(200).send({ message: "Payments purged successfully" });
+      reply.status(200);
     },
   );
 }

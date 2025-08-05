@@ -1,4 +1,4 @@
-interface PaymentDto {
+interface IPayment {
   correlationId: string;
   amount: number;
   requestedAt: Date;
@@ -8,13 +8,13 @@ interface PaymentDto {
 }
 
 export class Queue {
-  private jobs: Array<PaymentDto> = [];
+  private jobs: Array<IPayment> = [];
 
-  enqueue(data: PaymentDto) {
+  enqueue(data: IPayment) {
     this.jobs.push(data);
   }
 
-  dequeue(divisor: number): PaymentDto | undefined {
+  dequeue(divisor: number): IPayment | undefined {
     if (this.jobs.length === 0) {
       return undefined;
     }

@@ -1,14 +1,13 @@
-import Fastify from "fastify";
+import fastify from "fastify";
 import cors from "@fastify/cors";
-import { paymentsController } from "./presentation/controllers/payments.controller";
-import "http2";
+import { QueueController } from "./presentation/controller/queue.controller";
 
-export function buildApp() {
-  const app = Fastify({ logger: false });
+export function BuildApp() {
+  const app = fastify({ logger: false });
+  const prefix = "/queue";
 
-  app.register(cors, { origin: "*", methods: ["GET", "POST", "DELETE"] });
-  app.register(paymentsController);
-
+  app.register(cors, { origin: "*", methods: ["GET", "POST"] });
+  app.register(QueueController, { prefix });
   app.addContentTypeParser("application/json", { parseAs: "buffer" }, function (_, body, done) {
     if (!body || body.length === 0) {
       done(null, {});

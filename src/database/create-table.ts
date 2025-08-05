@@ -11,8 +11,6 @@ async function migrate() {
         provider VARCHAR(100) NOT NULL
     );
   `);
-
-  console.log("Migration completed");
 }
 
 migrate().catch(console.error);

@@ -3,8 +3,6 @@ import { CheckProcessorHealth } from "./foreign/api-process-health.foreign";
 import { ProcessmentApplication } from "./application/processment.application";
 
 class Worker {
-  private static readonly checkHealthErrorMessage = "Worker-process: ❌ Error checking processor health";
-
   constructor() {
     this.runProcessorHealthCheck();
     this.startWorker();
@@ -21,7 +19,6 @@ class Worker {
         memoryStore.set(response);
       }, 5000);
     } catch (error) {
-      console.error(Worker.checkHealthErrorMessage, error);
       process.exit(1);
     }
   }
