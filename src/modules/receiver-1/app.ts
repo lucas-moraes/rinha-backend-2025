@@ -5,7 +5,8 @@ import "http2";
 
 export function buildApp() {
   const app = Fastify({ logger: false });
-
+  app.register(require("@fastify/helmet"));
+  app.register(require("@fastify/formbody"));
   app.register(cors, { origin: "*", methods: ["GET", "POST", "DELETE"] });
   app.register(paymentsController);
 

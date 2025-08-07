@@ -15,7 +15,7 @@ export async function paymentsController(app: FastifyInstance) {
       if (!correlationId || !amount) return reply.status(400);
 
       const requestedAt = new Date().toISOString();
-      await fetch(PAYMENTS_CONTROLLER_CONSTANTS.REQUEST_ENQUEUE.URL, {
+      const resp = await fetch(PAYMENTS_CONTROLLER_CONSTANTS.REQUEST_ENQUEUE.URL, {
         method: PAYMENTS_CONTROLLER_CONSTANTS.REQUEST_ENQUEUE.METHOD,
         headers: PAYMENTS_CONTROLLER_CONSTANTS.REQUEST_ENQUEUE.HEADERS,
         body: JSON.stringify({
@@ -25,7 +25,7 @@ export async function paymentsController(app: FastifyInstance) {
         }),
       });
 
-      reply.status(200);
+      reply.status(resp.status);
     },
   );
 

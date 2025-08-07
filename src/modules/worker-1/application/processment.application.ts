@@ -52,7 +52,7 @@ export class ProcessmentApplication {
           : this.store?.fallbackProcessorStatus?.minResponseTime;
       const fFailing: boolean | undefined = this.store?.fallbackProcessorStatus?.failing;
 
-      const { data }: { data: PaymentDto | undefined } = await fetch(`http://localhost:9696/queue/dequeue/1`, {
+      const jobs = await fetch(`http://localhost:9696/queue/dequeue/1`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -68,18 +68,18 @@ export class ProcessmentApplication {
           return undefined;
         });
 
-      if (!data) {
+      if (jobs?.data === null || jobs?.data === undefined) {
         this.isProcessing = false;
         break;
       }
 
-      if (dTime === undefined || fTime === undefined) this.defaultProcessor(1000, data);
-      if (dTime! < fTime!) this.defaultProcessor(dTime! * 1.5, data);
-      if (dTime! > fTime!) this.fallbackProcessor(fTime! * 1.5, data);
+      if (dTime === undefined || fTime === undefined) this.defaultProcessor(1000, jobs.data);
+      if (dTime! < fTime!) this.defaultProcessor(dTime! * 1.5, jobs.data);
+      if (dTime! > fTime!) this.fallbackProcessor(fTime! * 1.5, jobs.data);
       if (dTime! === fTime!) {
-        if (dFailing) this.fallbackProcessor(fTime! * 1.5, data);
-        if (fFailing) this.defaultProcessor(dTime! * 1.5, data);
-        this.defaultProcessor(dTime! * 1.5, data);
+        if (dFailing) this.fallbackProcessor(fTime! * 1.5, jobs.data);
+        if (fFailing) this.defaultProcessor(dTime! * 1.5, jobs.data);
+        this.defaultProcessor(dTime! * 1.5, jobs.data);
       }
     }
   }
