@@ -2,6 +2,7 @@ import { FastifyInstance } from "fastify/fastify";
 import { summaryPayment } from "../../application/use-cases/payment/summary.usecase";
 import { deleteMany } from "../../application/use-cases/payment/delete.usecase";
 import { PAYMENTS_CONTROLLER_CONSTANTS } from "./constants";
+import { CONFIG } from "../../infra/configs";
 
 export async function paymentsController(app: FastifyInstance) {
   app.post(
@@ -13,6 +14,28 @@ export async function paymentsController(app: FastifyInstance) {
       const { correlationId, amount } = req.body as { correlationId: string; amount: number };
 
       if (!correlationId || !amount) return reply.status(400);
+
+      await fetch(`${CONFIG.PROCESSOR_DEFAULT}/payments/${correlationId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }).then((res) => {
+        if (res.status === 200) {
+          return reply.status(400);
+        }
+      });
+
+      await fetch(`${CONFIG.PROCESSOR_FALLBACK}/payments/${correlationId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }).then((res) => {
+        if (res.status === 200) {
+          return reply.status(400);
+        }
+      });
 
       const requestedAt = new Date().toISOString();
       const resp = await fetch(PAYMENTS_CONTROLLER_CONSTANTS.REQUEST_ENQUEUE.URL, {

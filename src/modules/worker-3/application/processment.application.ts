@@ -42,12 +42,12 @@ export class ProcessmentApplication {
 
       const dTime: number | undefined =
         this.store?.defaultProcessorStatus?.minResponseTime === 0
-          ? 300
+          ? 1000
           : this.store?.defaultProcessorStatus?.minResponseTime;
       const dFailing: boolean | undefined = this.store?.defaultProcessorStatus?.failing;
       const fTime: number | undefined =
         this.store?.fallbackProcessorStatus?.minResponseTime === 0
-          ? 300
+          ? 1000
           : this.store?.fallbackProcessorStatus?.minResponseTime;
       const fFailing: boolean | undefined = this.store?.fallbackProcessorStatus?.failing;
 
@@ -113,7 +113,7 @@ export class ProcessmentApplication {
       const time =
         (this.store?.fallbackProcessorStatus?.minResponseTime! > 0
           ? this.store?.fallbackProcessorStatus?.minResponseTime!
-          : 300) ?? 300;
+          : 1000) ?? 1000;
       await this.fallbackProcessor(time, data);
     }
   }
