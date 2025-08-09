@@ -27,7 +27,8 @@ services:
           cpus:   '0.10'
           memory: '128M'
   
-  api:
+  api-1:
+    # image: 881029/rinha-backend-2025:2.3.2
     build:
       context: .
       dockerfile: ./Dockerfile
@@ -49,12 +50,40 @@ services:
         condition: service_healthy
     networks:
       - default
-
     deploy:
       resources:
         limits:
-          cpus:   '1.0'
-          memory: '162M'
+          cpus:   '0.50'
+          memory: '81M'
+
+  api-2:
+    # image: 881029/rinha-backend-2025:2.3.2 
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      HOST: 0.0.0.0
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: user
+      DB_PASS: pass
+      DB_NAME: rinha
+      PROCESSOR_DEFAULT:  http://host.docker.internal:8001
+      PROCESSOR_FALLBACK: http://host.docker.internal:8002
+    expose:
+      - "9999"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - default
+    deploy:
+      resources:
+        limits:
+          cpus:   '0.50'
+          memory: '81M'
  
   lb:
     image: nginx:alpine
@@ -65,11 +94,12 @@ services:
     networks:
       - default
     depends_on:
-      - api
+      - api-1
+      - api-2
     deploy:
       resources:
         limits:
-          cpus:   '0.4'
+          cpus:   '0.40'
           memory: '50M'
 volumes:
   postgres-data:
