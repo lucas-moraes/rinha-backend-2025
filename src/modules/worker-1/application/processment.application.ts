@@ -73,13 +73,14 @@ export class ProcessmentApplication {
         break;
       }
 
-      if (dTime === undefined || fTime === undefined) this.defaultProcessor(1000, jobs.data);
-      if (dTime! < fTime!) this.defaultProcessor(dTime! * 1.5, jobs.data);
-      if (dTime! > fTime!) this.fallbackProcessor(fTime! * 1.5, jobs.data);
+      if (dFailing && fFailing) return this.Reenqueue(jobs.data);
+      if (dTime === undefined || fTime === undefined) return this.defaultProcessor(1000, jobs.data);
+      if (dTime! < fTime!) return this.defaultProcessor(dTime!, jobs.data);
+      if (dTime! > fTime!) return this.fallbackProcessor(fTime!, jobs.data);
       if (dTime! === fTime!) {
-        if (dFailing) this.fallbackProcessor(fTime! * 1.5, jobs.data);
-        if (fFailing) this.defaultProcessor(dTime! * 1.5, jobs.data);
-        this.defaultProcessor(dTime! * 1.5, jobs.data);
+        if (dFailing) return this.fallbackProcessor(fTime!, jobs.data);
+        if (fFailing) return this.defaultProcessor(dTime!, jobs.data);
+        return this.defaultProcessor(dTime!, jobs.data);
       }
     }
   }
@@ -146,18 +147,22 @@ export class ProcessmentApplication {
         throw new Error("Fallback processor is overloaded");
       }
     } catch (error) {
-      await fetch(`http://localhost:9696/queue/enqueue`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          correlationId: data.correlationId,
-          amount: data.amount,
-          requestedAt: data.requestedAt,
-          worker: 1,
-        }),
-      });
+      await this.Reenqueue(data);
     }
+  }
+
+  private async Reenqueue(data: PaymentDto): Promise<void> {
+    await fetch(`http://localhost:9696/queue/enqueue`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        correlationId: data.correlationId,
+        amount: data.amount,
+        requestedAt: data.requestedAt,
+        worker: 1,
+      }),
+    });
   }
 }

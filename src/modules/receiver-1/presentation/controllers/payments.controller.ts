@@ -22,7 +22,7 @@ export async function paymentsController(app: FastifyInstance) {
         },
       }).then((res) => {
         if (res.status === 200) {
-          return reply.status(400);
+          return reply.status(202);
         }
       });
 
@@ -33,7 +33,7 @@ export async function paymentsController(app: FastifyInstance) {
         },
       }).then((res) => {
         if (res.status === 200) {
-          return reply.status(400);
+          return reply.status(202);
         }
       });
 

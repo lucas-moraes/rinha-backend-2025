@@ -1,5 +1,7 @@
 networks:
   default:
+    external: true
+    name: payment-processor
     driver: bridge
 
 services:
@@ -11,14 +13,14 @@ services:
       timeout: 3s
       retries: 5
     restart: unless-stopped
+    ports:
+      - '5432:5432'
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: pass
       POSTGRES_DB: rinha
     tmpfs:
       - /var/lib/postgresql/data
-    ports:
-      - '5432:5432'
     networks:
         - default
     deploy:
@@ -32,58 +34,78 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     environment:
       HOST: 0.0.0.0
+      PORT: 9999
       DB_HOST: postgres
       DB_PORT: 5432
       DB_USER: user
       DB_PASS: pass
       DB_NAME: rinha
-      PROCESSOR_DEFAULT:  http://host.docker.internal:8001
-      PROCESSOR_FALLBACK: http://host.docker.internal:8002
+      PROCESSOR_DEFAULT:  "http://payment-processor-default:8080"
+      PROCESSOR_FALLBACK: "http://payment-processor-fallback:8080"
     expose:
       - "9999"
     depends_on:
       postgres:
         condition: service_healthy
-    networks:
-      - default
     deploy:
       resources:
         limits:
-          cpus:   '0.50'
-          memory: '81M'
+          cpus:   '0.33'
+          memory: '54M'
 
   api-2:
-    # image: 881029/rinha-backend-2025:2.3.2 
+    # image: 881029/rinha-backend-2025:2.3.2
     build:
-      context: .
-      dockerfile: ./Dockerfile
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+       context: .
+       dockerfile: ./Dockerfile
     environment:
       HOST: 0.0.0.0
+      PORT: 9999
       DB_HOST: postgres
       DB_PORT: 5432
       DB_USER: user
       DB_PASS: pass
       DB_NAME: rinha
-      PROCESSOR_DEFAULT:  http://host.docker.internal:8001
-      PROCESSOR_FALLBACK: http://host.docker.internal:8002
+      PROCESSOR_DEFAULT:  "http://payment-processor-default:8080"
+      PROCESSOR_FALLBACK: "http://payment-processor-fallback:8080"
     expose:
       - "9999"
     depends_on:
       postgres:
         condition: service_healthy
-    networks:
-      - default
     deploy:
       resources:
         limits:
-          cpus:   '0.50'
-          memory: '81M'
+          cpus:   '0.33'
+          memory: '54M'
+
+  api-3:
+    # image: 881029/rinha-backend-2025:2.3.2
+    build:
+       context: .
+       dockerfile: ./Dockerfile
+    environment:
+      HOST: 0.0.0.0
+      PORT: 9999
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: user
+      DB_PASS: pass
+      DB_NAME: rinha
+      PROCESSOR_DEFAULT:  "http://payment-processor-default:8080"
+      PROCESSOR_FALLBACK: "http://payment-processor-fallback:8080"
+    expose:
+      - "9999"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus:   '0.33'
+          memory: '54M'
  
   lb:
     image: nginx:alpine
@@ -99,7 +121,5 @@ services:
     deploy:
       resources:
         limits:
-          cpus:   '0.40'
+          cpus:   '0.35'
           memory: '50M'
-volumes:
-  postgres-data:
