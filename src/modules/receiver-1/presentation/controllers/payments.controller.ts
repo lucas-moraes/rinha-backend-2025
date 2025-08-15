@@ -75,4 +75,8 @@ export async function paymentsController(app: FastifyInstance) {
       reply.status(200);
     },
   );
+
+  app.get(PAYMENTS_CONTROLLER_CONSTANTS.ENDPOINTS.HEALTH_CHECK, async (_, reply) => {
+    reply.status(200).send({ status: "ok" });
+  });
 }

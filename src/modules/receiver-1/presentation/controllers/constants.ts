@@ -65,6 +65,7 @@ export const PAYMENTS_CONTROLLER_CONSTANTS = {
     PAYMENTS: "/payments",
     PAYMENTS_SUMMARY: "/payments-summary",
     PURGE_PAYMENTS: "/purge-payments",
+    HEALTH_CHECK: "/health-check",
   },
   REQUEST_ENQUEUE: {
     URL: "http://localhost:9696/queue/enqueue",

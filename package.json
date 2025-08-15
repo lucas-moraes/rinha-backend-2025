@@ -13,6 +13,9 @@
     "type": "git",
     "url": "git+https://github.com/lucas-moraes/rinha-backend-2025.git"
   },
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "keywords": [
     "rinha",
     "backend"
@@ -31,7 +34,6 @@
     "fastify": "^5.4.0",
     "mysql2": "^3.14.3",
     "pg": "^8.16.3",
-    "prisma": "^6.11.1",
     "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {
