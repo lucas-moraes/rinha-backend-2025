@@ -26,7 +26,6 @@ export const PAYMENTS_CONTROLLER_CONSTANTS = {
           from: { type: "string", format: "date-time" },
           to: { type: "string", format: "date-time" },
         },
-        required: ["from", "to"],
       },
       response: {
         200: {
