@@ -1,5 +1,8 @@
 import dotenv from "dotenv";
-dotenv.config();
+
+if (process.env.NODE_ENV !== "production") {
+  dotenv.config();
+}
 
 export const CONFIG = {
   PORT: 9696,
