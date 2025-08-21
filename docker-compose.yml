@@ -39,7 +39,7 @@ services:
   api-1:
     cpus: "0.60"
     mem_limit: "100m"
-    # image: 881029/rinha-backend-2025:2.3.4
+    # image: 881029/rinha-backend-2025:2.3.5
     build:
       context: .
       dockerfile: ./Dockerfile
@@ -71,7 +71,7 @@ services:
   api-2:
     cpus: "0.55"
     mem_limit: "90m"
-    # image: 881029/rinha-backend-2025:2.3.4
+    # image: 881029/rinha-backend-2025:2.3.5
     build:
       context: .
       dockerfile: ./Dockerfile

@@ -21,7 +21,7 @@ export async function QueueController(app: FastifyInstance) {
         return reply.status(400);
       }
 
-      divisor = (divisor % 3) + 1;
+      //divisor = (divisor % 3) + 1;
 
       queue.enqueue({
         correlationId,

@@ -15,27 +15,27 @@ export async function paymentsController(app: FastifyInstance) {
 
       if (!correlationId || !amount) return reply.status(400);
 
-      await fetch(`${CONFIG.PROCESSOR_DEFAULT}/payments/${correlationId}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }).then((res) => {
-        if (res.status === 200) {
-          return reply.status(202);
-        }
-      });
-
-      await fetch(`${CONFIG.PROCESSOR_FALLBACK}/payments/${correlationId}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }).then((res) => {
-        if (res.status === 200) {
-          return reply.status(202);
-        }
-      });
+      // await fetch(`${CONFIG.PROCESSOR_DEFAULT}/payments/${correlationId}`, {
+      //   method: "GET",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      // }).then((res) => {
+      //   if (res.status === 200) {
+      //     return reply.status(202);
+      //   }
+      // });
+      //
+      // await fetch(`${CONFIG.PROCESSOR_FALLBACK}/payments/${correlationId}`, {
+      //   method: "GET",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      // }).then((res) => {
+      //   if (res.status === 200) {
+      //     return reply.status(202);
+      //   }
+      // });
 
       const requestedAt = new Date().toISOString();
       const resp = await fetch(PAYMENTS_CONTROLLER_CONSTANTS.REQUEST_ENQUEUE.URL, {

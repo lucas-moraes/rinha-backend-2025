@@ -41,15 +41,15 @@ export class ProcessmentApplication {
     while (true) {
       this.store = memoryStore.get();
 
-      const dTime: number | undefined =
-        this.store?.defaultProcessorStatus?.minResponseTime === 0
-          ? 1000
-          : this.store?.defaultProcessorStatus?.minResponseTime;
+      // const dTime: number | undefined =
+      //   this.store?.defaultProcessorStatus?.minResponseTime === 0
+      //     ? 1000
+      //     : this.store?.defaultProcessorStatus?.minResponseTime;
       const dFailing: boolean | undefined = this.store?.defaultProcessorStatus?.failing;
-      const fTime: number | undefined =
-        this.store?.fallbackProcessorStatus?.minResponseTime === 0
-          ? 1000
-          : this.store?.fallbackProcessorStatus?.minResponseTime;
+      // const fTime: number | undefined =
+      //   this.store?.fallbackProcessorStatus?.minResponseTime === 0
+      //     ? 1000
+      //     : this.store?.fallbackProcessorStatus?.minResponseTime;
       const fFailing: boolean | undefined = this.store?.fallbackProcessorStatus?.failing;
 
       const jobs = await fetch(`http://localhost:9696/queue/dequeue/1`, {
@@ -73,15 +73,15 @@ export class ProcessmentApplication {
         break;
       }
 
-      if (dFailing && fFailing) return this.Reenqueue(jobs.data);
-      if (dTime === undefined || fTime === undefined) return this.defaultProcessor(1000, jobs.data);
-      if (dTime! < fTime!) return this.defaultProcessor(dTime!, jobs.data);
-      if (dTime! > fTime!) return this.fallbackProcessor(fTime!, jobs.data);
-      if (dTime! === fTime!) {
-        if (dFailing) return this.fallbackProcessor(fTime!, jobs.data);
-        if (fFailing) return this.defaultProcessor(dTime!, jobs.data);
-        return this.defaultProcessor(dTime!, jobs.data);
-      }
+      //if (dFailing && fFailing) return this.Reenqueue(jobs.data);
+      // if (dTime === undefined || fTime === undefined) return this.defaultProcessor(1000, jobs.data);
+      // if (dTime! < fTime!) return this.defaultProcessor(dTime!, jobs.data);
+      // if (dTime! > fTime!) return this.fallbackProcessor(fTime!, jobs.data);
+      // if (dTime! === fTime!) {
+      if (dFailing) return this.fallbackProcessor(500, jobs.data);
+      if (fFailing) return this.defaultProcessor(500, jobs.data);
+      return this.defaultProcessor(500, jobs.data);
+      // }
     }
   }
 
@@ -112,11 +112,11 @@ export class ProcessmentApplication {
         throw new Error("Fallback processor is overloaded");
       }
     } catch (error) {
-      const time =
-        (this.store?.fallbackProcessorStatus?.minResponseTime! > 0
-          ? this.store?.fallbackProcessorStatus?.minResponseTime!
-          : 1000) ?? 1000;
-      await this.fallbackProcessor(time, data);
+      // const time =
+      //   (this.store?.fallbackProcessorStatus?.minResponseTime! > 0
+      //     ? this.store?.fallbackProcessorStatus?.minResponseTime!
+      //     : 1000) ?? 1000;
+      await this.fallbackProcessor(500, data);
     }
   }
 
