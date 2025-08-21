@@ -2,20 +2,26 @@
 ### [Repositório oficial](https://github.com/zanfranceschi/rinha-de-backend-2025/tree/main?tab=readme-ov-file)
 # 
 
+
 <details>
-<summary> Regras para o desafio</summary>
-# Instruções para a Rinha de Backend - 2025
+<summary>Solução simplificada</summary>
+  
+</details>
+
+
+<details>
+<summary>Instruções para o desafio</summary>
 
 ## Desafio
 Sua equipe e/ou você precisa desenvolver um backend que intermedie solicitações de pagamentos para um serviço de processamento de pagamentos, chamado de Payment Processor.
 
-![diagrama](misc/imgs/instrucoes/image-01.png)
+![diagrama](docs/imgs/instrucoes/image-01.png)
 
 Para cada pagamento intermediado, uma taxa financeira é cobrada. Por exemplo, com uma taxa de 5% para uma solicitação de pagamento de \$100,00; você seria cobrado \$5,00 e ficaria com $95,00.
 
 Entretanto, como a vida de verdade é dura, esse serviço irá sofrer instabilidades. Os tempos de resposta dele poderá ficar muito alto e poderá até começar a ficar indisponível respondendo com erros HTTP 500. E como sabemos que a vida é dura, nós nos preparamos para essas coisas e criamos um plano B. O plano B, é que existe um segundo serviço Payment Processor.
 
-![diagrama](misc/imgs/instrucoes/image-02.png)
+![diagrama](docs/imgs/instrucoes/image-02.png)
 
 **Observação**: As taxas sobre os processamentos de pagamentos não irão mudar durante o testes e o serviço default sempre terá a menor taxa.
 
@@ -25,7 +31,7 @@ O problema é que esse serviço de contingência – chamado de Payment Processo
 
 Além do endpoint `POST /payments`, também é necessário disponibilizar um endpoint que detalha o resumo dos pagamentos processados – `GET /payments-summary`. Esse endpoint será usado para auditar a consistência entre o que foi processado pelo seu backend e o que foi processado pelos dois Payment Processors. É o Banco Central verificando se você está registrando tudo certinho de tempos em tempos.
 
-![diagrama](misc/imgs/instrucoes/image-03.png)
+![diagrama](docs/imgs/instrucoes/image-03.png)
 
 Essas chamadas periódicas durante o teste da Rinha vão comparar as respostas e, a cada inconsistência, uma multa salgada será aplicada!
 
@@ -386,10 +392,4 @@ As tabelas abaixo oferem um resumo para facilitar a visão geral da solução.
 | PUT /admin/configurations/failure | Configura falha no endpoint de pagamentos. |
 | POST /admin/purge-payments        | Elimina todos os pagamentos da base de dados. Para desenvolvimento apenas. |
 
-## Outras Informações
-
-- As especificações sobre o servidor de testes podem ser encontradas [aqui](./SPECTESTENV.md).
-- O código fonte do **Payment Processor** está disponível [aqui](https://github.com/zanfranceschi/rinha-de-backend-2025-payment-processor).
-- Vídeo muito bom e didático sobre [como automatizar a publicação de imagens Docker com GitHub Actions](https://www.youtube.com/watch?v=u6dWrkJLYvY) feito pelo [Emilio Heinzmann](https://x.com/emiliosheinz).
-  
 </details>
