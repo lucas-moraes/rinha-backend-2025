@@ -2,12 +2,11 @@
 ### [Repositório oficial](https://github.com/zanfranceschi/rinha-de-backend-2025/tree/main?tab=readme-ov-file)
 # 
 
-
-<details>
-<summary>Solução simplificada</summary>
-  
-</details>
-
+![badge](https://img.shields.io/badge/Node%20js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
+![badge](https://img.shields.io/badge/Jest-C21325?style=for-the-badge&logo=jest&logoColor=white)
+![bagde](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![bagde](https://img.shields.io/badge/fastify-202020?style=for-the-badge&logo=fastify&logoColor=white)
+![bagde](https://img.shields.io/badge/PostgreSQL-green?style=for-the-badge)
 
 <details>
 <summary>Instruções para o desafio</summary>
@@ -391,5 +390,34 @@ As tabelas abaixo oferem um resumo para facilitar a visão geral da solução.
 | PUT /admin/configurations/delay   | Configura o atraso no endpoint de pagamentos. |
 | PUT /admin/configurations/failure | Configura falha no endpoint de pagamentos. |
 | POST /admin/purge-payments        | Elimina todos os pagamentos da base de dados. Para desenvolvimento apenas. |
+
+</details>
+
+<details>
+<summary>Solução aplicada</summary>
+</br>
+Como haviam limites de uso de CPU e memória para implementar a solução (CPU: 1.5 e memória: 350mb), decidi fazer manualmente alguns serviços ao invés de usar bibliotecas prontas, acreditando que essa escolha, que foi necessária, não ocasionaria em gargalhos no funcionamnto da solução.
+
+## Diagrama do serviço
+![diagrama](docs/imgs/diagrama-2.png)
+
+O Sistema funcionaria da seguinte forma:
+- O Receiver é encarregado de receber as requisições para registro de pagamento e repassar ao Queue;
+- O Queue enfileira as requisições e fornece de forma assícrona os pagamentos para os Workers;
+- Os Workers enviam a requisição do pagamento para os processadores de pagamento (Default e Fallback), caso sucesso na requisição salva no banco de dados, caso erro reenfileira a requisição;
+
+As tecnologias implementadas foram: 
+- Fastify (Conforme pesquisas, tende a ser 4x mais rápido do que o expressJS);
+- PG (Apesar de ser menos abstrato do que um ORM tende a ser mais rápido com a comunicação com o banco de dados);
+- Postgres (Banco de dados robusto porém requisitou 30% do limite disponível de memoria e CPU);
+- Jest e Supertest (Para testes unitários e de integração);
+- Terser (Para compressão, ajuda na valocidade e tamanho dos artefatos);
+- NGINX atuando como load balancer (Robin);
+
+## Tabela de testes
+![diagrama](docs/imgs/tabela-testes.png)
+
+A minha iniciativa para participar no desafio não foi a de chegar em primeiro lugar, mas sim aprender novas tecnologias como fastify que é bem análogo ao ExpressJS.
+Muitos que acabaram ficando entre as primeiras posições abstraíram além da fila (que na vida real eu usaria RedisDB), também abstraíram o banco de dados que na vida real não é aplicável.
 
 </details>
